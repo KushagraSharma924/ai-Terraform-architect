@@ -1,0 +1,29 @@
+# Dependency directories
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/.next/
+**/out/
+
+# Logs
+**/logs/
+**/*.log
+**/npm-debug.log*
+
+# Environment secrets
+**/.env
+**/.env.local
+**/.env.production
+**/.env.test
+
+# IDE / OS files
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
