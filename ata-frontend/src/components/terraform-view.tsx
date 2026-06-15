@@ -49,6 +49,13 @@ export function TerraformView({
     queryFn: () => terraformApi.getProjectVersions(projectId),
   });
 
+  // Reset selected version when generationId changes
+  useEffect(() => {
+    setSelectedVersionId(null);
+    setSelectedFilePath(null);
+    setDiffMode(false);
+  }, [generationId]);
+
   // Find the version corresponding to the current generation
   const currentGenVersion = versions?.find((v: any) => v.generationId === generationId);
 
