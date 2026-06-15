@@ -242,6 +242,24 @@ export function TerraformView({
   const activeVersion = versions?.find((v: any) => v.id === selectedVersionId);
   const activeStatus = activeVersion?.status || 'pending';
 
+  if (loadingVersions) {
+    return (
+      <div className="py-24 text-center text-xs text-slate-500 font-semibold space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-500" />
+        <p>Loading version history...</p>
+      </div>
+    );
+  }
+
+  if (selectedVersionId && loadingDetails) {
+    return (
+      <div className="py-24 text-center text-xs text-slate-500 font-semibold space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-indigo-500" />
+        <p>Loading configuration details...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Action Header */}
