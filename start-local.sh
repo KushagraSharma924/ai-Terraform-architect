@@ -31,6 +31,9 @@ echo "→ Migrating project-service..."
 echo "→ Migrating intent-service..."
 (cd ata-intent-service && npm install && npm run db:migrate)
 
+echo "→ Migrating terraform-generator-service..."
+(cd ata-terraform-generator-service && npm install && npm run db:migrate)
+
 # Create a logs directory
 mkdir -p logs
 
@@ -47,6 +50,10 @@ echo "→ Starting project-service on port 3002..."
 # Start intent service
 echo "→ Starting intent-service on port 3004..."
 (cd ata-intent-service && npm run start:dev > ../logs/intent-service.log 2>&1) &
+
+# Start terraform generator service
+echo "→ Starting terraform-generator-service on port 3005..."
+(cd ata-terraform-generator-service && npm run start:dev > ../logs/terraform-generator-service.log 2>&1) &
 
 # Start gateway proxy
 echo "→ Starting gateway proxy on port 3000..."
