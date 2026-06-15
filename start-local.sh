@@ -4,24 +4,60 @@
 trap cleanup INT
 
 cleanup() {
-  echo -e "\nStopping all services..."
+  echo -e "\n🛑 Stopping all services..."
   # Kill all background processes spawned by this script
   jobs -p | xargs kill 2>/dev/null
-  echo "All services stopped."
+  echo "✅ All services stopped."
   exit 0
 }
 
-echo "Building shared packages..."
-# 1. Build Shared Types
+# Clean build caches function
+clean_cache() {
+  local service_dir=$1
+  echo "🧹 Cleaning caches in ${service_dir}..."
+  rm -rf "${service_dir}/dist" "${service_dir}/tsconfig.build.tsbuildinfo" 2>/dev/null
+}
+
+# Port check and release function
+check_and_kill_port() {
+  local port=$1
+  local pid=$(lsof -t -i:"$port")
+  if [ -n "$pid" ]; then
+    echo "⚠️ Port $port is already in use by PID $pid. Terminating old process..."
+    kill -9 "$pid" 2>/dev/null
+    sleep 1
+  fi
+}
+
+echo "========================================================"
+echo "🚀 Initiating ATA Platform Local Environment"
+echo "========================================================"
+
+# 1. Check and clean ports to prevent duplicate bindings
+echo "🔍 Checking ports..."
+for port in 3000 3001 3002 3003 3004 3005; do
+  check_and_kill_port "$port"
+done
+
+# 2. Clean build directories to resolve stale hot-reloads and 404 cache states
+clean_cache "ata-auth-service"
+clean_cache "ata-project-service"
+clean_cache "ata-intent-service"
+clean_cache "ata-terraform-generator-service"
+clean_cache "ata-gateway"
+echo "🧹 Cleaning Next.js frontend cache..."
+rm -rf ata-frontend/.next 2>/dev/null
+
+# 3. Build Shared Packages
+echo "📦 Building shared packages..."
 echo "→ Building ata-shared-types..."
 (cd ata-shared-types && npm install && npm run build)
 
-# 2. Build LLM Provider Lib
 echo "→ Building ata-llm-provider-lib..."
 (cd ata-llm-provider-lib && npm install && npm run build)
 
-echo "Running migrations..."
-# Run migrations for all three DB services
+# 4. Database Migrations
+echo "🗄️ Running database migrations..."
 echo "→ Migrating auth-service..."
 (cd ata-auth-service && npm install && npm run db:migrate)
 
@@ -36,8 +72,9 @@ echo "→ Migrating terraform-generator-service..."
 
 # Create a logs directory
 mkdir -p logs
+rm -f logs/*.log # Clear old log files
 
-echo "Starting services in background... Logs will be written to the 'logs' folder."
+echo "🖥️ Starting services in background... Logs will be written to the 'logs' folder."
 
 # Start auth service
 echo "→ Starting auth-service on port 3001..."
@@ -65,9 +102,9 @@ echo "→ Starting frontend on port 3003..."
 
 echo ""
 echo "========================================================"
-echo "🎉 All services started successfully!"
+echo "🎉 All services started successfully with clean caches!"
 echo "- Frontend client: http://localhost:3003"
-echo "- Gateway URL: http://localhost:3000"
+echo "- Gateway URL:     http://localhost:3000"
 echo "- Watch logs in real-time using: tail -f logs/*.log"
 echo "- Press [Ctrl+C] to stop all services."
 echo "========================================================"
