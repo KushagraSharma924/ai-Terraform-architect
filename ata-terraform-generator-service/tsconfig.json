@@ -19,9 +19,5 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@ata/shared-types": ["../ata-shared-types/src/index.ts"],
-      "@ata/shared-types/*": ["../ata-shared-types/src/*"]
-    }
   }
 }
