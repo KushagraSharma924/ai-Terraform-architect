@@ -26,7 +26,7 @@ export interface GenerateProjectDto {
   spec: InfrastructureSpecification;
 }
 
-@Controller('api/v1/terraform-projects')
+@Controller('terraform-projects')
 @UseGuards(JwtAuthGuard)
 export class TerraformProjectsController {
   constructor(
