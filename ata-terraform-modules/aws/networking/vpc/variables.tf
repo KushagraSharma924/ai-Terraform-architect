@@ -11,7 +11,7 @@ variable "availability_zones" {
 }
 
 variable "enable_nat_gateway" {
-  type        = boolean
+  type        = bool
   description = "Provision a NAT Gateway"
   default     = true
 }
