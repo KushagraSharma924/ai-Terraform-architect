@@ -1,0 +1,12 @@
+{
+  "name": "ec2-asg",
+  "category": "compute",
+  "provider": "aws",
+  "version": "1.1.0",
+  "sourcePath": "aws/compute/ec2-asg",
+  "requiredVariables": ["vpc_id", "private_subnet_ids", "security_group_id"],
+  "optionalVariables": ["instance_type", "min_size", "max_size", "target_group_arn", "tags"],
+  "outputs": ["asg_name", "asg_arn"],
+  "dependsOn": ["vpc", "security-groups"],
+  "supportedIntentKeys": ["compute.type=ec2", "services=autoscaling"]
+}

@@ -63,4 +63,27 @@ export class UsageService {
       periodEnd: quota?.periodEnd?.toISOString(),
     };
   }
+
+  async decrementQuota(userId: string, tier: string) {
+    const quota = await this.getOrInitQuota(userId, tier);
+    const used = Number(quota.generationsUsed);
+    const limit = Number(quota.generationsLimit);
+
+    if (used >= limit) {
+      throw new Error('QUOTA_EXCEEDED');
+    }
+
+    await this.db
+      .update(usageQuotas)
+      .set({
+        generationsUsed: used + 1,
+      })
+      .where(eq(usageQuotas.id, quota.id));
+
+    return {
+      success: true,
+      generationsUsed: used + 1,
+      generationsLimit: limit,
+    };
+  }
 }

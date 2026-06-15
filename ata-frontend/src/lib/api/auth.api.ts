@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { AuthResponse } from '../../../ata-shared-types/src/auth/auth-tokens.types';
+import type { AuthResponse } from '@ata/shared-types';
 
 export const authApi = {
   register: (data: { email: string; password: string; fullName: string }) =>

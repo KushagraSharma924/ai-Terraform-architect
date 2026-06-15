@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { UsageService } from './usage.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -14,5 +14,13 @@ export class UsageController {
     @CurrentUser('subscriptionTier') tier: string,
   ) {
     return this.usage.getQuota(userId, tier ?? 'free');
+  }
+
+  @Post('decrement')
+  decrementQuota(
+    @CurrentUser('id') userId: string,
+    @CurrentUser('subscriptionTier') tier: string,
+  ) {
+    return this.usage.decrementQuota(userId, tier ?? 'free');
   }
 }

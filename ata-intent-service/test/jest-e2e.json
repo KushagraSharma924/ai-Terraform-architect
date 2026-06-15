@@ -1,0 +1,13 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@ata/shared-types(.*)$": "<rootDir>/../../ata-shared-types/src$1",
+    "^@ata/llm-provider-lib(.*)$": "<rootDir>/../../ata-llm-provider-lib/src$1"
+  }
+}

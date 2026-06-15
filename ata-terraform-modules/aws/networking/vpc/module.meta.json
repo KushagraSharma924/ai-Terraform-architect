@@ -1,0 +1,12 @@
+{
+  "name": "vpc",
+  "category": "networking",
+  "provider": "aws",
+  "version": "1.2.0",
+  "sourcePath": "aws/networking/vpc",
+  "requiredVariables": ["cidr_block", "availability_zones"],
+  "optionalVariables": ["enable_nat_gateway", "tags"],
+  "outputs": ["vpc_id", "public_subnet_ids", "private_subnet_ids"],
+  "dependsOn": [],
+  "supportedIntentKeys": ["services=vpc"]
+}

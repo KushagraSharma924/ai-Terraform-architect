@@ -1,0 +1,19 @@
+{
+  "name": "@ata/llm-provider-lib",
+  "version": "1.0.0",
+  "description": "LLM Provider Library for OpenAI and Claude integrations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "openai": "^4.24.1",
+    "@anthropic-ai/sdk": "^0.18.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/node": "^20.11.0"
+  }
+}

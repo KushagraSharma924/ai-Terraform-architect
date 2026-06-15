@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ata/shared-types": ["../ata-shared-types/src"]
     }
   },
   "include": [

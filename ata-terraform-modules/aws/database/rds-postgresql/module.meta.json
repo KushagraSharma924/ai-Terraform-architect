@@ -1,0 +1,12 @@
+{
+  "name": "rds-postgresql",
+  "category": "database",
+  "provider": "aws",
+  "version": "1.3.0",
+  "sourcePath": "aws/database/rds-postgresql",
+  "requiredVariables": ["subnet_ids", "security_group_id", "password"],
+  "optionalVariables": ["name", "engine_version", "instance_class", "allocated_storage", "db_name", "username", "multi_az", "tags"],
+  "outputs": ["db_endpoint", "db_id"],
+  "dependsOn": ["vpc", "security-groups"],
+  "supportedIntentKeys": ["database.type=postgresql", "services=rds"]
+}

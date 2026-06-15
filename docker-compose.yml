@@ -91,11 +91,34 @@ services:
     environment:
       AUTH_SERVICE_URL: http://auth-service:3001
       PROJECT_SERVICE_URL: http://project-service:3002
+      INTENT_SERVICE_URL: http://intent-service:3004
     ports:
       - '3000:3000'
     depends_on:
       - auth-service
       - project-service
+      - intent-service
+    restart: unless-stopped
+
+  intent-service:
+    build:
+      context: ./ata-intent-service
+      dockerfile: Dockerfile
+    container_name: ata-intent-service
+    env_file: ./ata-intent-service/.env
+    environment:
+      DATABASE_URL: postgresql://ata_user:ata_password@postgres:5432/ata_db
+      REDIS_URL: redis://redis:6379
+      PROJECT_SERVICE_URL: http://project-service:3002
+    ports:
+      - '3004:3004'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      project-service:
+        condition: service_started
     restart: unless-stopped
 
   frontend:

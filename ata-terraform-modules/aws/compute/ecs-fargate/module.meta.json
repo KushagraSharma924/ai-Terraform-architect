@@ -1,0 +1,12 @@
+{
+  "name": "ecs-fargate",
+  "category": "compute",
+  "provider": "aws",
+  "version": "1.0.0",
+  "sourcePath": "aws/compute/ecs-fargate",
+  "requiredVariables": ["private_subnet_ids", "security_group_id"],
+  "optionalVariables": ["cluster_name", "service_name", "container_image", "container_port", "cpu", "memory", "instance_count", "target_group_arn", "aws_region", "tags"],
+  "outputs": ["cluster_arn", "service_name"],
+  "dependsOn": ["vpc", "security-groups"],
+  "supportedIntentKeys": ["compute.type=ecs", "services=ecs"]
+}

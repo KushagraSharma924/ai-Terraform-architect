@@ -1,0 +1,12 @@
+{
+  "name": "alb",
+  "category": "loadbalancing",
+  "provider": "aws",
+  "version": "1.0.1",
+  "sourcePath": "aws/loadbalancing/alb",
+  "requiredVariables": ["vpc_id", "public_subnet_ids", "security_group_id"],
+  "optionalVariables": ["name", "internal", "target_port", "target_type", "health_check_path", "tags"],
+  "outputs": ["dns_name", "target_group_arn"],
+  "dependsOn": ["vpc", "security-groups"],
+  "supportedIntentKeys": ["loadBalancer.type=alb", "services=alb"]
+}
