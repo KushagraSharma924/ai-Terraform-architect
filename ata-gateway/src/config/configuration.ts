@@ -9,6 +9,10 @@ export default registerAs('app', () => ({
   projectServiceUrl: process.env.PROJECT_SERVICE_URL ?? 'http://localhost:3002',
   intentServiceUrl: process.env.INTENT_SERVICE_URL ?? 'http://localhost:3004',
   terraformServiceUrl: process.env.TERRAFORM_SERVICE_URL ?? 'http://localhost:3005',
+  deploymentServiceUrl: process.env.DEPLOYMENT_SERVICE_URL ?? 'http://localhost:3006',
+  securityServiceUrl: process.env.SECURITY_SERVICE_URL ?? 'http://localhost:3007',
+  cloudopsServiceUrl: process.env.CLOUDOPS_SERVICE_URL ?? 'http://localhost:3008',
+  orgServiceUrl: process.env.ORG_SERVICE_URL ?? 'http://localhost:3009',
   internalApiKey: process.env.INTERNAL_API_KEY ?? 'change-me-in-production',
   redis: { url: process.env.REDIS_URL ?? 'redis://localhost:6379' },
   rateLimit: {

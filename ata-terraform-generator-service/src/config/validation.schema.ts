@@ -10,6 +10,8 @@ export const envSchema = z.object({
   PROJECT_SERVICE_URL: z.string().url().default('http://localhost:3002'),
   INTERNAL_API_KEY: z.string().default('change-me-in-production'),
   MODULES_PATH: z.string(),
+  ARTIFACT_STORAGE_DIR: z.string().default('/tmp/ata-artifacts'),
+  ARTIFACT_SIGNED_URL_TTL: z.coerce.number().default(900),
 });
 
 export type Env = z.infer<typeof envSchema>;

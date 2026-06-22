@@ -27,3 +27,10 @@
 *.njsproj
 *.sln
 *.sw?
+
+# Terraform local working dirs & state (build artifacts, never commit)
+scratch/
+**/.terraform/
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*

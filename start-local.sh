@@ -35,7 +35,7 @@ echo "========================================================"
 
 # 1. Check and clean ports to prevent duplicate bindings
 echo "🔍 Checking ports..."
-for port in 3000 3001 3002 3003 3004 3005; do
+for port in 3000 3001 3002 3003 3004 3005 3006 3007 3008 3009; do
   check_and_kill_port "$port"
 done
 
@@ -44,6 +44,10 @@ clean_cache "ata-auth-service"
 clean_cache "ata-project-service"
 clean_cache "ata-intent-service"
 clean_cache "ata-terraform-generator-service"
+clean_cache "ata-deployment-service"
+clean_cache "ata-security-scanner-service"
+clean_cache "ata-cloudops-service"
+clean_cache "ata-org-service"
 clean_cache "ata-gateway"
 echo "🧹 Cleaning Next.js frontend cache..."
 rm -rf ata-frontend/.next 2>/dev/null
@@ -70,6 +74,18 @@ echo "→ Migrating intent-service..."
 echo "→ Migrating terraform-generator-service..."
 (cd ata-terraform-generator-service && npm install && npm run db:migrate)
 
+echo "→ Migrating deployment-service..."
+(cd ata-deployment-service && npm install && npm run db:migrate)
+
+echo "→ Migrating security-scanner-service..."
+(cd ata-security-scanner-service && npm install && npm run db:migrate)
+
+echo "→ Migrating cloudops-service..."
+(cd ata-cloudops-service && npm install && npm run db:migrate)
+
+echo "→ Migrating org-service..."
+(cd ata-org-service && npm install && npm run db:migrate)
+
 # Create a logs directory
 mkdir -p logs
 rm -f logs/*.log # Clear old log files
@@ -91,6 +107,22 @@ echo "→ Starting intent-service on port 3004..."
 # Start terraform generator service
 echo "→ Starting terraform-generator-service on port 3005..."
 (cd ata-terraform-generator-service && npm run start:dev > ../logs/terraform-generator-service.log 2>&1) &
+
+# Start deployment service (Phase 6)
+echo "→ Starting deployment-service on port 3006..."
+(cd ata-deployment-service && npm run start:dev > ../logs/deployment-service.log 2>&1) &
+
+# Start security scanner service (Phase 8)
+echo "→ Starting security-scanner-service on port 3007..."
+(cd ata-security-scanner-service && npm run start:dev > ../logs/security-scanner-service.log 2>&1) &
+
+# Start cloudops service (Phase 7)
+echo "→ Starting cloudops-service on port 3008..."
+(cd ata-cloudops-service && npm run start:dev > ../logs/cloudops-service.log 2>&1) &
+
+# Start org service (Phase 10)
+echo "→ Starting org-service on port 3009..."
+(cd ata-org-service && npm run start:dev > ../logs/org-service.log 2>&1) &
 
 # Start gateway proxy
 echo "→ Starting gateway proxy on port 3000..."

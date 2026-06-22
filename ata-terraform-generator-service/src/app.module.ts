@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { ModuleRegistryModule } from './modules/module-registry/module-registry.module';
 import { ProviderMappingModule } from './modules/provider-mapping/provider-mapping.module';
 import { GeneratorModule } from './modules/generator/generator.module';
+import { ExportModule } from './modules/export/export.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -44,6 +45,7 @@ import { AppController } from './app.controller';
     ModuleRegistryModule,
     ProviderMappingModule,
     GeneratorModule,
+    ExportModule,
   ],
   controllers: [AppController],
 })

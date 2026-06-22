@@ -10,4 +10,7 @@ export default registerAs('app', () => ({
   projectServiceUrl: process.env.PROJECT_SERVICE_URL ?? 'http://localhost:3002',
   internalApiKey: process.env.INTERNAL_API_KEY ?? 'change-me-in-production',
   modulesPath: process.env.MODULES_PATH!,
+  // Phase 5 — artifact storage. Local filesystem by default; swap for S3 via StoragePort.
+  artifactStorageDir: process.env.ARTIFACT_STORAGE_DIR ?? '/tmp/ata-artifacts',
+  artifactSignedUrlTtlSeconds: parseInt(process.env.ARTIFACT_SIGNED_URL_TTL ?? '900', 10),
 }));

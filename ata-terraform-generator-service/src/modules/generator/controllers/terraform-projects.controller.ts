@@ -155,6 +155,18 @@ export class TerraformProjectsController {
     };
   }
 
+  @Post('version/:versionId/rollback')
+  async rollback(
+    @Param('versionId') versionId: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    if (!userId) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    const newVersionId = await this.generatorService.rollback(versionId, userId);
+    return { versionId: newVersionId, rolledBackFrom: versionId, status: 'completed' };
+  }
+
   @Get('diff')
   async getDiff(
     @Query('fromVersionId') fromVersionId: string,

@@ -8,6 +8,13 @@
       "when": 1781546944969,
       "tag": "0000_funny_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782129920835,
+      "tag": "0001_right_thing",
+      "breakpoints": true
     }
   ]
 }

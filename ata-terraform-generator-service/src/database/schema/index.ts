@@ -113,6 +113,35 @@ export const validationResults = terraformSchema.table(
   })
 );
 
+// Phase 5 — Project Export & Versioning.
+// One row per requested export artifact (zip | validation_json | pdf) for a version.
+// Append-only + content-addressed (sha256) so identical content is deduped/cached.
+export const terraformArtifacts = terraformSchema.table(
+  'terraform_artifacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    terraformVersionId: uuid('terraform_version_id')
+      .notNull()
+      .references((): any => terraformVersions.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 20 }).notNull(), // 'zip'|'validation_json'|'pdf'
+    status: varchar('status', { length: 20 }).notNull().default('pending'), // 'pending'|'ready'|'failed'
+    storageKey: varchar('storage_key', { length: 1024 }), // path/key in StoragePort
+    contentHash: varchar('content_hash', { length: 64 }), // sha256 of artifact bytes
+    sizeBytes: integer('size_bytes'),
+    fileName: varchar('file_name', { length: 255 }).notNull(),
+    error: text('error'),
+    downloadCount: integer('download_count').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+  },
+  (t) => ({
+    versionIdx: index('idx_tfartifacts_version').on(t.terraformVersionId),
+    hashIdx: index('idx_tfartifacts_hash').on(t.contentHash),
+    statusIdx: index('idx_tfartifacts_status').on(t.status),
+  })
+);
+
 export const moduleRegistry = terraformSchema.table(
   'module_registry',
   {

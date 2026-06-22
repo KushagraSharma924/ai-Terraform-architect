@@ -17,12 +17,20 @@ export class ProxyController {
   private readonly projectProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
   private readonly intentProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
   private readonly terraformProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
+  private readonly deploymentProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
+  private readonly securityProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
+  private readonly cloudopsProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
+  private readonly orgProxy: ReturnType<typeof httpProxy.createProxyMiddleware>;
 
   constructor(private readonly config: ConfigService) {
     const authServiceUrl = config.get<string>('app.authServiceUrl')!;
     const projectServiceUrl = config.get<string>('app.projectServiceUrl')!;
     const intentServiceUrl = config.get<string>('app.intentServiceUrl')!;
     const terraformServiceUrl = config.get<string>('app.terraformServiceUrl')!;
+    const deploymentServiceUrl = config.get<string>('app.deploymentServiceUrl')!;
+    const securityServiceUrl = config.get<string>('app.securityServiceUrl')!;
+    const cloudopsServiceUrl = config.get<string>('app.cloudopsServiceUrl')!;
+    const orgServiceUrl = config.get<string>('app.orgServiceUrl')!;
 
     this.authProxy = httpProxy.createProxyMiddleware({
       target: authServiceUrl,
@@ -68,6 +76,54 @@ export class ProxyController {
         proxyReq: httpProxy.fixRequestBody,
         error: (err, _req, res) => {
           (res as Response).status(502).json({ error: 'BAD_GATEWAY', message: 'Terraform generator service unavailable' });
+        },
+      },
+    });
+
+    this.deploymentProxy = httpProxy.createProxyMiddleware({
+      target: deploymentServiceUrl,
+      changeOrigin: true,
+      pathRewrite: { '^/api/v1': '' },
+      on: {
+        proxyReq: httpProxy.fixRequestBody,
+        error: (err, _req, res) => {
+          (res as Response).status(502).json({ error: 'BAD_GATEWAY', message: 'Deployment service unavailable' });
+        },
+      },
+    });
+
+    this.securityProxy = httpProxy.createProxyMiddleware({
+      target: securityServiceUrl,
+      changeOrigin: true,
+      pathRewrite: { '^/api/v1': '' },
+      on: {
+        proxyReq: httpProxy.fixRequestBody,
+        error: (err, _req, res) => {
+          (res as Response).status(502).json({ error: 'BAD_GATEWAY', message: 'Security scanner service unavailable' });
+        },
+      },
+    });
+
+    this.cloudopsProxy = httpProxy.createProxyMiddleware({
+      target: cloudopsServiceUrl,
+      changeOrigin: true,
+      pathRewrite: { '^/api/v1': '' },
+      on: {
+        proxyReq: httpProxy.fixRequestBody,
+        error: (err, _req, res) => {
+          (res as Response).status(502).json({ error: 'BAD_GATEWAY', message: 'CloudOps service unavailable' });
+        },
+      },
+    });
+
+    this.orgProxy = httpProxy.createProxyMiddleware({
+      target: orgServiceUrl,
+      changeOrigin: true,
+      pathRewrite: { '^/api/v1': '' },
+      on: {
+        proxyReq: httpProxy.fixRequestBody,
+        error: (err, _req, res) => {
+          (res as Response).status(502).json({ error: 'BAD_GATEWAY', message: 'Org service unavailable' });
         },
       },
     });
@@ -119,6 +175,60 @@ export class ProxyController {
   @All(['api/v1/terraform-projects', 'api/v1/terraform-projects/*'])
   proxyTerraform(@Req() req: Request, @Res() res: Response) {
     return (this.terraformProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  // Phase 5 — project export artifacts (zip/download) live in the terraform service.
+  @All(['api/v1/exports', 'api/v1/exports/*'])
+  proxyExports(@Req() req: Request, @Res() res: Response) {
+    return (this.terraformProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  // Phase 6 — cloud deployment engine.
+  @All(['api/v1/cloud-accounts', 'api/v1/cloud-accounts/*'])
+  proxyCloudAccounts(@Req() req: Request, @Res() res: Response) {
+    return (this.deploymentProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  @All(['api/v1/deployments', 'api/v1/deployments/*'])
+  proxyDeployments(@Req() req: Request, @Res() res: Response) {
+    return (this.deploymentProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  // Phase 8 — security & compliance scanner.
+  @All(['api/v1/scans', 'api/v1/scans/*'])
+  proxyScans(@Req() req: Request, @Res() res: Response) {
+    return (this.securityProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  // Phase 7 — AI CloudOps assistant.
+  @All(['api/v1/cloudops', 'api/v1/cloudops/*'])
+  proxyCloudOps(@Req() req: Request, @Res() res: Response) {
+    return (this.cloudopsProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  // Phase 10 — organizations, teams, RBAC, collaboration.
+  @All(['api/v1/orgs', 'api/v1/orgs/*'])
+  proxyOrgs(@Req() req: Request, @Res() res: Response) {
+    return (this.orgProxy as any)(req, res, (err: unknown) => {
+      if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
+    });
+  }
+
+  @All(['api/v1/notifications', 'api/v1/notifications/*'])
+  proxyNotifications(@Req() req: Request, @Res() res: Response) {
+    return (this.orgProxy as any)(req, res, (err: unknown) => {
       if (err) res.status(502).json({ error: 'BAD_GATEWAY' });
     });
   }

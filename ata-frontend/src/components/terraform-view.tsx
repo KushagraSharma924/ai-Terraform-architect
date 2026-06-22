@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { terraformApi } from '@/lib/api/terraform.api';
+import { VersionActions } from '@/components/version-actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
@@ -290,6 +291,11 @@ export function TerraformView({
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Phase 5 — export / download / rollback for the active completed version */}
+          {selectedVersionId && activeStatus === 'completed' && (
+            <VersionActions versionId={selectedVersionId} onRollback={() => refetchVersions()} />
           )}
 
           {/* Trigger button */}

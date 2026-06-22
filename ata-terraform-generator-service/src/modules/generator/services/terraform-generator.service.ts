@@ -65,6 +65,69 @@ export class TerraformGeneratorService {
     return version.id;
   }
 
+  /**
+   * Phase 5 — Rollback. Creates a NEW version whose content equals an earlier
+   * version (history is append-only; nothing is mutated or deleted). The new
+   * version becomes the project's current version.
+   */
+  async rollback(targetVersionId: string, userId: string): Promise<string> {
+    const target = await this.projectRepo.getVersion(targetVersionId);
+    if (!target) throw new Error(`Version ${targetVersionId} not found`);
+
+    const project = await this.projectRepo.findProjectByGenerationId(target.generationId);
+    if (project && project.userId !== userId) {
+      throw new Error('Access denied to this project version');
+    }
+
+    const files = await this.projectRepo.getFilesForVersion(targetVersionId);
+    if (files.length === 0) throw new Error('Target version has no files to roll back to');
+
+    const latest = await this.projectRepo.getLatestVersionNumber(target.terraformProjectId);
+    const totalSizeBytes = files.reduce((acc, f) => acc + f.sizeBytes, 0);
+
+    const newVersion = await this.projectRepo.createVersion({
+      terraformProjectId: target.terraformProjectId,
+      generationId: target.generationId,
+      versionNumber: latest + 1,
+      specSnapshot: target.specSnapshot,
+      moduleVersionsUsed: target.moduleVersionsUsed,
+      status: 'completed',
+      validationPassed: target.validationPassed,
+      fileCount: files.length,
+      totalSizeBytes,
+      completedAt: new Date(),
+    });
+
+    await this.projectRepo.saveFiles(
+      files.map((f) => ({
+        terraformVersionId: newVersion.id,
+        filePath: f.filePath,
+        fileType: f.fileType,
+        content: f.content,
+        checksum: f.checksum,
+        sizeBytes: f.sizeBytes,
+      })),
+    );
+
+    await this.projectRepo.updateProject(target.terraformProjectId, {
+      currentVersionId: newVersion.id,
+      status: 'completed',
+    });
+
+    await this.projectRepo.log({
+      terraformVersionId: newVersion.id,
+      stage: 'persistence',
+      level: 'info',
+      message: `Rolled back to version ${target.versionNumber} (new version ${latest + 1})`,
+      metadata: { rolledBackFrom: targetVersionId },
+    });
+
+    this.logger.log(
+      `Rollback: project ${target.terraformProjectId} → new version ${newVersion.id} from ${targetVersionId}`,
+    );
+    return newVersion.id;
+  }
+
   async execute(
     versionId: string,
     projectId: string,

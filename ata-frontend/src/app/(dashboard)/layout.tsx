@@ -3,7 +3,7 @@
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, LayoutDashboard, Settings, FolderKanban } from 'lucide-react';
+import { LogOut, LayoutDashboard, Settings, FolderKanban, Rocket, Sparkles, ShieldCheck, Building2 } from 'lucide-react';
 import { authApi } from '@/lib/api/auth.api';
 
 export default function DashboardLayout({
@@ -31,6 +31,10 @@ export default function DashboardLayout({
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Workspaces', href: '/workspaces', icon: FolderKanban },
+    { name: 'Deployments', href: '/deployments', icon: Rocket },
+    { name: 'Security', href: '/scans', icon: ShieldCheck },
+    { name: 'CloudOps AI', href: '/cloudops', icon: Sparkles },
+    { name: 'Organization', href: '/organization', icon: Building2 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
