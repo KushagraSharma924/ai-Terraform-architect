@@ -8,7 +8,11 @@ export const envSchema = z.object({
   JWT_PUBLIC_KEY: z.string(),
   INTERNAL_API_KEY: z.string().default('change-me-in-production'),
   TELEMETRY_PROVIDER: z.enum(['mock', 'aws']).default('mock'),
-  LLM_PROVIDER: z.enum(['mock', 'anthropic']).default('mock'),
+  LLM_PROVIDER: z.enum(['mock', 'anthropic', 'ollama']).default('mock'),
+  OLLAMA_BASE_URL: z.string().default('http://localhost:11434'),
+  OLLAMA_MODEL: z.string().default('qwen2.5:3b'),
+  ANTHROPIC_API_KEY: z.string().default(''),
+  ANTHROPIC_MODEL: z.string().default('claude-haiku-4-5-20251001'),
 });
 
 export type Env = z.infer<typeof envSchema>;

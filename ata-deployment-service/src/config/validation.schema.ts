@@ -13,6 +13,7 @@ export const envSchema = z.object({
   RUNNER_WORK_DIR: z.string().default('/tmp/ata-deploy-runs'),
   SECURITY_SERVICE_URL: z.string().url().default('http://localhost:3007'),
   SECURITY_GATE_MODE: z.enum(['off', 'warn', 'block']).default('warn'),
+  STS_MODE: z.enum(['mock', 'real']).default('mock'),
 });
 
 export type Env = z.infer<typeof envSchema>;

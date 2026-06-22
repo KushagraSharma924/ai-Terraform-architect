@@ -9,5 +9,7 @@ export default registerAs('app', () => ({
   internalApiKey: process.env.INTERNAL_API_KEY ?? 'change-me-in-production',
   // Telemetry + LLM are mock by default so the assistant works without cloud/LLM creds.
   telemetryProvider: process.env.TELEMETRY_PROVIDER ?? 'mock', // 'mock'|'aws'
-  llmProvider: process.env.LLM_PROVIDER ?? 'mock', // 'mock'|'anthropic'
+  llmProvider: process.env.LLM_PROVIDER ?? 'mock', // 'mock'|'anthropic'|'ollama'
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL ?? 'qwen2.5:3b',
 }));

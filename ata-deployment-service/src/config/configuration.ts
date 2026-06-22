@@ -18,4 +18,6 @@ export default registerAs('app', () => ({
   // Phase 8 security gate. URL of the scanner service + enforcement mode.
   securityServiceUrl: process.env.SECURITY_SERVICE_URL ?? 'http://localhost:3007',
   securityGateMode: process.env.SECURITY_GATE_MODE ?? 'warn', // 'off'|'warn'|'block'
+  // STS mode: 'mock' uses fake creds (no AWS needed), 'real' calls AWS STS AssumeRole.
+  stsMode: process.env.STS_MODE ?? 'mock',
 }));

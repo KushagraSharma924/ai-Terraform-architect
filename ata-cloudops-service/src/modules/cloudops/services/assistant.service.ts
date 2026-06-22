@@ -14,12 +14,6 @@ export interface AskResult {
   data?: unknown;
 }
 
-/**
- * AI orchestration layer. For each question it: classifies intent (tool select)
- * → calls the relevant engine(s) over real account data → synthesizes a grounded
- * answer with citations. Never invents resource ids — everything comes from the
- * fetched context.
- */
 @Injectable()
 export class AssistantService {
   constructor(
@@ -56,7 +50,7 @@ export class AssistantService {
     );
 
     const synthesized = await this.llm.synthesize(question, {
-      answer: result.answer,
+      intent: result.intent,
       ...((result.data as object) ?? {}),
     });
 
@@ -70,63 +64,98 @@ export class AssistantService {
     return { ...result, answer: synthesized };
   }
 
-  /** Tool-routing + grounding. Returns a draft answer + citations + raw data. */
   private async answer(
     organizationId: string,
     cloudAccountId: string,
     question: string,
   ): Promise<AskResult> {
     const intent = classifyIntent(question);
+    const { resources } = await this.inventory.getInventory(organizationId, cloudAccountId);
+    const discovered = this.toDiscovered(resources);
+
+    // Always build a concise resource summary for Ollama context
+    const resourceSummary = discovered.map((r) => ({
+      service: r.service,
+      id: r.resourceId,
+      name: (r.tags as any)?.Name ?? (r.tags as any)?.name ?? r.resourceId,
+      type: r.type,
+      state: r.state,
+      region: r.region,
+      monthlyCost: r.monthlyCost,
+      tags: r.tags,
+      config: r.config,
+    }));
 
     if (intent === 'cost_trend') {
       const series = await this.telemetry.getCostSeries(cloudAccountId, 30);
       const trend = this.costEngine.analyze(series);
-      const top = trend.drivers[0];
-      const dir = trend.deltaPct >= 0 ? 'up' : 'down';
-      const answer =
-        `Your spend is ${dir} ${Math.abs(trend.deltaPct)}% this period ` +
-        `($${trend.totalPrevious} → $${trend.totalCurrent}). ` +
-        (top ? `The biggest driver is ${top.service} (${top.deltaPct >= 0 ? '+' : ''}${top.deltaPct}%, now $${top.current}).` : '');
-      return { answer, intent, citations: trend.drivers.slice(0, 3), data: { trend } };
+      return {
+        answer: '',
+        intent,
+        citations: trend.drivers.slice(0, 3),
+        data: { trend, resources: resourceSummary },
+      };
     }
 
     if (intent === 'cost_optimize' || intent === 'unused_resources') {
-      const { resources } = await this.inventory.getInventory(organizationId, cloudAccountId);
-      const recs = this.recommender.generate(this.toDiscovered(resources));
-      const savings = recs.reduce((s, r) => s + (r.estSavings ?? 0), 0);
-      const answer = recs.length
-        ? `I found ${recs.length} optimization opportunities worth ~$${savings}/mo. ` +
-          `Top: ${recs.slice(0, 3).map((r) => r.title).join('; ')}.`
-        : 'No optimization opportunities found in the latest inventory.';
-      return { answer, intent, citations: recs.map((r) => r.resourceRef), data: { recommendations: recs } };
+      const recs = this.recommender.generate(discovered);
+      return {
+        answer: '',
+        intent,
+        citations: recs.map((r) => r.resourceRef),
+        data: { recommendations: recs, resources: resourceSummary },
+      };
     }
 
     if (intent === 'unhealthy_resources') {
-      const { resources } = await this.inventory.getInventory(organizationId, cloudAccountId);
-      const unhealthy = resources.filter(
-        (r) => r.state === 'stopped' || (r.config as any)?.cpuUtilizationAvg === 0,
-      );
-      const answer = unhealthy.length
-        ? `${unhealthy.length} resource(s) look unhealthy/idle: ${unhealthy.map((r) => r.resourceId).join(', ')}.`
-        : 'All resources appear healthy in the latest snapshot.';
-      return { answer, intent, citations: unhealthy.map((r) => r.resourceId), data: { unhealthy } };
+      const stopped = resourceSummary.filter((r) => r.state === 'stopped');
+      return {
+        answer: '',
+        intent,
+        citations: stopped.map((r) => r.id),
+        data: { stoppedResources: stopped, allResources: resourceSummary },
+      };
     }
 
     if (intent === 'security') {
-      const { resources } = await this.inventory.getInventory(organizationId, cloudAccountId);
-      const recs = this.recommender.generate(this.toDiscovered(resources)).filter((r) => r.category === 'security');
-      const answer = recs.length
-        ? `${recs.length} security issue(s): ${recs.map((r) => r.title).join('; ')}.`
-        : 'No security issues detected in the latest inventory.';
-      return { answer, intent, citations: recs.map((r) => r.resourceRef), data: { security: recs } };
+      const recs = this.recommender.generate(discovered).filter((r) => r.category === 'security');
+      // Include raw resource configs so Ollama can inspect public access, IAM policies etc.
+      const s3Buckets = resourceSummary.filter((r) => r.service === 's3');
+      const iamRoles = resourceSummary.filter((r) => r.service === 'iam');
+      const publicBuckets = s3Buckets.filter((r) => (r.config as any)?.publicAccess === true);
+      const publicRds = resourceSummary.filter(
+        (r) => r.service === 'rds' && (r.config as any)?.publiclyAccessible === true,
+      );
+      return {
+        answer: '',
+        intent,
+        citations: recs.map((r) => r.resourceRef),
+        data: {
+          securityRecommendations: recs,
+          s3Buckets,
+          publicBuckets,
+          publicRds,
+          iamRoles,
+          allResources: resourceSummary,
+        },
+      };
     }
 
-    const { resources } = await this.inventory.getInventory(organizationId, cloudAccountId);
+    // general — pass full inventory so Ollama can answer any specific question
     return {
-      answer: `You have ${resources.length} discovered resources. Ask me about cost trends, unused resources, security, or optimizations.`,
+      answer: '',
       intent,
       citations: [],
-      data: { resourceCount: resources.length },
+      data: {
+        totalResources: resources.length,
+        resources: resourceSummary,
+        byService: {
+          ec2: resourceSummary.filter((r) => r.service === 'ec2'),
+          rds: resourceSummary.filter((r) => r.service === 'rds'),
+          s3: resourceSummary.filter((r) => r.service === 's3'),
+          iam: resourceSummary.filter((r) => r.service === 'iam'),
+        },
+      },
     };
   }
 

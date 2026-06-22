@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import {
   CloudAccountController,
@@ -11,6 +12,7 @@ import { DeploymentExecutionService } from './services/deployment-execution.serv
 import { CloudAccountService } from './services/cloud-account.service';
 import { CostService } from './cost/cost.service';
 import { CredentialBroker, MockStsAdapter, STS_PORT } from './credentials/credential-broker';
+import { AwsStsAdapter } from './credentials/aws-sts.adapter';
 import { RUNNER_PORT } from './runner/runner.port';
 import { LocalRunnerAdapter } from './runner/local-runner.adapter';
 import { TERRAFORM_SOURCE, HttpTerraformSource } from './ports/terraform-source.port';
@@ -30,7 +32,14 @@ import { DeploymentProcessor } from './processors/deployment.processor';
     CredentialBroker,
     SecurityGate,
     DeploymentProcessor,
-    { provide: STS_PORT, useClass: MockStsAdapter },
+    {
+      provide: STS_PORT,
+      useFactory: (config: ConfigService) => {
+        const mode = config.get<string>('app.stsMode') ?? 'mock';
+        return mode === 'real' ? new AwsStsAdapter() : new MockStsAdapter();
+      },
+      inject: [ConfigService],
+    },
     { provide: RUNNER_PORT, useClass: LocalRunnerAdapter },
     { provide: TERRAFORM_SOURCE, useClass: HttpTerraformSource },
   ],
